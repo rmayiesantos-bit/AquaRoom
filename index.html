@@ -1664,16 +1664,16 @@ function init(cv){if(active&&active.cv===cv)return active;if(active)dispose(acti
   if(k===17||k===18){const beak=new T.Mesh(new T.ConeGeometry(r*.12,r*.28,12),mat('#e2a24e'));beak.rotation.z=-Math.PI/2;beak.position.set(L*.66,0,0);body.add(beak)}
   root.userData={tail,body,L,H,r,phase:Math.random()*6.28,fin:pectoral,stage,k};return root;
  }
- function resize(){const r=cv.getBoundingClientRect(),w=Math.max(1,r.width),h=Math.max(1,r.height);if(w===lastW&&h===lastH)return;lastW=w;lastH=h;layer.style.width=w+'px';layer.style.height=h+'px';renderer.setSize(Math.round(w),Math.round(h),false);camera.left=-500;camera.right=500;camera.top=310;camera.bottom=-310;camera.updateProjectionMatrix()}
- active={cv,layer,renderer,scene,camera,fishGroup,models,resize};return active;
+ function resize(){const r=cv.getBoundingClientRect(),w=Math.max(1,r.width),h=Math.max(1,r.height);if(w===lastW&&h===lastH)return;lastW=w;lastH=h;if(active){active.lastW=w;active.lastH=h}layer.style.width=w+'px';layer.style.height=h+'px';renderer.setSize(Math.round(w),Math.round(h),false);camera.left=-w/2;camera.right=w/2;camera.top=h/2;camera.bottom=-h/2;camera.updateProjectionMatrix()}
+ active={cv,layer,renderer,scene,camera,fishGroup,models,resize,createFish};return active;
 }
 function dispose(cv){if(!active||active.cv!==cv)return;active.renderer.dispose();active.layer.remove();active=null;window.__aq3dActive=false}
 window.__aq3dDispose=dispose;
 // Replace the temporary camera expression with the actual orthographic camera held by renderer state.
 window.__aq3dUpdate=(cv,fish,BT,d,t)=>{if(window.__aq3dFailed)return;if(BT){if(active&&active.cv===cv)active.layer.style.display='none';window.__aq3dActive=false;return}if(!window.THREE){loadThree().then(()=>{}).catch(()=>{});return}let a;try{a=init(cv)}catch(err){window.__aq3dActive=false;window.__aq3dFailed=true;console.warn('3D aquarium unavailable; using 2D fish fallback.',err);return}if(!a)return;a.layer.style.display='block';window.__aq3dActive=true;a.resize();
- while(a.models.length<fish.length){const f=fish[a.models.length],m=createFish(f.k||0,f.s||0);a.fishGroup.add(m);a.models.push(m)}while(a.models.length>fish.length){const m=a.models.pop();a.fishGroup.remove(m);m.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
- fish.forEach((f,i)=>{let m=a.models[i],u=m.userData;if(u.k!==(f.k||0)||u.stage!==(f.s||0)){a.fishGroup.remove(m);m.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});m=createFish(f.k||0,f.s||0);a.fishGroup.add(m);a.models[i]=m;u=m.userData}const dir=f.fx!=null?(f.fx<0?-1:1):(f.vx<0?-1:1);m.position.set(f.x-500,310-f.y,(i%5)*2);m.rotation.set(0,dir<0?Math.PI:0,Math.max(-.22,Math.min(.22,-(f.vy||0)*.0012)));m.position.y+=Math.sin(t*1.2+u.phase)*1.4;u.tail.rotation.y=Math.sin(t*2+u.phase)*.38;u.fin.rotation.x=Math.sin(t*1.7+u.phase)*.14});
- a.renderer.render(a.scene,a.camera)};
+ while(a.models.length<fish.length){const f=fish[a.models.length],m=a.createFish(f.k||0,f.s||0);a.fishGroup.add(m);a.models.push(m)}while(a.models.length>fish.length){const m=a.models.pop();a.fishGroup.remove(m);m.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}
+ fish.forEach((f,i)=>{let m=a.models[i],u=m.userData;if(u.k!==(f.k||0)||u.stage!==(f.s||0)){a.fishGroup.remove(m);m.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});m=a.createFish(f.k||0,f.s||0);a.fishGroup.add(m);a.models[i]=m;u=m.userData}const dir=f.fx!=null?(f.fx<0?-1:1):(f.vx<0?-1:1);m.position.set(f.x-a.lastW/2,a.lastH/2-f.y,(i%5)*2);m.rotation.set(0,dir<0?Math.PI:0,Math.max(-.22,Math.min(.22,-(f.vy||0)*.0012)));m.position.y+=Math.sin(t*1.2+u.phase)*1.4;u.tail.rotation.y=Math.sin(t*2+u.phase)*.38;u.fin.rotation.x=Math.sin(t*1.7+u.phase)*.14});
+ try{a.renderer.render(a.scene,a.camera)}catch(err){console.warn('3D aquarium render issue; keeping aquarium running.',err)}};
 window.__aq3dActive=false;
 })();
 </script>
